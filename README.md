@@ -12,7 +12,9 @@ This library provides a Kotlin DSL to create Swagger definitions and provides a 
 allprojects {
     repositories {
         ...
-        jcenter()
+        maven {
+            url  "https://dl.bintray.com/flowmo7/maven" 
+        }
     }
 }
 

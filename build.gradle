@@ -37,7 +37,7 @@ dependencies {
 
 
 // publish stuff:
-// publishing works with ./gradlew clean build test dokka sourcesJar bintrayUpload -PdryRun=true (in a dry-run, for the final publish set dryRun to false)
+// publishing works with ./gradlew clean build test dokka sourcesJar bintrayUpload (in a dry-run, for the final publish set dryRun to false or set the dryRun parameter below to false)
 
 Properties properties = new Properties()
 try {
