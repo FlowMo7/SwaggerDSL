@@ -252,7 +252,7 @@ object YamlFileGenerator {
         return if (description.contains('\n')) {
             listOf("description: |") + description.split('\n').map { "${PADDING}$it" }
         } else {
-            listOf("description: '$description'")
+            listOf("description: \"${description.replace("\"", "\\\"")}\"")
         }
     }
 
