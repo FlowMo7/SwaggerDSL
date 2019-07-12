@@ -52,9 +52,9 @@ class YamlFileGeneratorTest {
             |    Which is multiline
             |    Even 3 lines here
             |  version: '1.2.3'
-            |  title: 'Test API'
-            |host: 'swagger.example.org'
-            |basePath: '/swaggertest/'
+            |  title: "Test API"
+            |host: "swagger.example.org"
+            |basePath: "/swaggertest/"
             |schemes:
             |  - https
             |tags:
@@ -63,20 +63,20 @@ class YamlFileGeneratorTest {
             |      Some information about the tag
             |      Even multiline!
             |paths:
-            |  '/status':
+            |  "/status":
             |    get:
             |      tags:
             |      - status
-            |      summary: 'Endpoint to check the API status'
-            |      description: 'Returns 200 on a healthy API with some additional information.'
-            |      operationId: 'status'
+            |      summary: "Endpoint to check the API status"
+            |      description: "Returns 200 on a healthy API with some additional information."
+            |      operationId: "status"
             |      produces:
             |        - text/html
             |      responses:
             |        200:
-            |          description: 'API is up & running'
+            |          description: "API is up & running"
             |        500:
-            |          description: 'Error in API'
+            |          description: "Error in API"
             |""".trimMargin()
     }
 

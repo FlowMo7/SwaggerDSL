@@ -49,6 +49,8 @@ object YamlFileGenerator {
     }
 
 
+    private fun String.escapeQuotes(): String = this.replace("\"", "\\\"")
+
     private fun SwaggerDefinition.Info.getYamlLines(): List<String> {
         val list = mutableListOf("info:")
 
@@ -59,13 +61,13 @@ object YamlFileGenerator {
             list.add("${PADDING}version: '$version'")
         }
         title?.also { title ->
-            list.add("${PADDING}title: '$title'")
+            list.add("${PADDING}title: \"${title.escapeQuotes()}\"")
         }
         host?.also { host ->
-            list.add("host: '$host'")
+            list.add("host: \"${host.escapeQuotes()}\"")
         }
         basePath?.also { basePath ->
-            list.add("basePath: '$basePath'")
+            list.add("basePath: \"${basePath.escapeQuotes()}\"")
         }
 
         list.add("schemes:")
@@ -92,7 +94,7 @@ object YamlFileGenerator {
 
     private fun SwaggerDefinition.Path.toYamlLines(): List<String> {
         val list = mutableListOf(
-            "'$path':",
+            "\"${path.escapeQuotes()}\":",
             "$PADDING${method}:"
         )
 
@@ -103,13 +105,13 @@ object YamlFileGenerator {
             }
         }
         summary?.also { summary ->
-            list.add("$PADDING${PADDING}summary: '$summary'")
+            list.add("$PADDING${PADDING}summary: \"${summary.escapeQuotes()}\"")
         }
         description?.also { description ->
             list.addAll(descriptionToList(description).map { "$PADDING$PADDING$it" })
         }
         operationId?.also { operationId ->
-            list.add("$PADDING${PADDING}operationId: '$operationId'")
+            list.add("$PADDING${PADDING}operationId: \"${operationId.escapeQuotes()}\"")
         }
 
         if (produces.isNotEmpty()) {
@@ -155,10 +157,12 @@ object YamlFileGenerator {
             list.add("${PADDING}type: $type")
         }
         enum?.also { enum ->
-            list.add("${PADDING}enum:")
-            list.addAll(enum.map { enumValue ->
-                "$PADDING$PADDING- $enumValue"
-            })
+            list.add(
+                "${PADDING}enum: " + enum.joinToString(
+                    prefix = "[",
+                    postfix = "]",
+                    separator = ","
+                ) { "\"${it.escapeQuotes()}\"" })
         }
         schema?.also { schema ->
             list.addAll(schema.toYamlLines())
