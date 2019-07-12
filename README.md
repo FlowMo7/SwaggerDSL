@@ -27,7 +27,7 @@ dependencies {
 ## Kotlin DSL Usage
 
 
-Create a new seaggwe definition with the given DSL:
+Create a new swagger definition with the given DSL:
 
 ```kotlin
 val swagger: SwaggerDefinition by lazy {
