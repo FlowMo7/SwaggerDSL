@@ -1,15 +1,49 @@
 package dev.moetz.swagger.builder
 
-import dev.moetz.swagger.builder.model.Parameter
-import dev.moetz.swagger.builder.model.PathParameter
-import dev.moetz.swagger.builder.model.QueryParameter
-import dev.moetz.swagger.builder.model.Schema
+import dev.moetz.swagger.builder.model.*
 import dev.moetz.swagger.definition.SwaggerDefinition
 
 class SwaggerBuilder
 @PublishedApi internal constructor(
     private val swaggerFileVersion: String = "2.0"
 ) {
+
+    @PublishedApi
+    internal val referencedSchemas: MutableMap<String, Schema> = mutableMapOf()
+
+    inline fun createObjectSchema(name: String? = null, receiver: ObjectSchema.() -> Unit): Schema =
+        ObjectSchema(name = name).also(receiver).handleAndReturnReferencedIfNamed(this)
+
+    inline fun createArraySchema(name: String? = null, receiver: ArraySchema.() -> Unit): Schema =
+        ArraySchema(name = name).also(receiver).handleAndReturnReferencedIfNamed(this)
+
+    inline fun createTypeSchema(
+        type: String,
+        name: String? = null,
+        receiver: TypeSchema.() -> Unit
+    ): Schema =
+        TypeSchema(type = type, name = name).also(receiver).handleAndReturnReferencedIfNamed(this)
+
+    @PublishedApi
+    internal fun Schema.handleAndReturnReferencedIfNamed(swaggerBuilder: SwaggerBuilder): Schema {
+        val schemaName = this.name
+        return if (schemaName != null) {
+            if (swaggerBuilder.referencedSchemas.containsKey(schemaName)) {
+                throw IllegalArgumentException("Schema with name '$name' already defined")
+            }
+            swaggerBuilder.referencedSchemas[schemaName] = this
+            ReferencedSchema(this)
+        } else {
+            this
+        }
+    }
+
+    fun getNamedSchema(name: String): Schema {
+        val schema =
+            referencedSchemas[name] ?: throw IllegalArgumentException("Could not find named schema '$name'")
+        return ReferencedSchema(schema)
+    }
+
 
     companion object {
 
@@ -248,7 +282,8 @@ class SwaggerBuilder
             swaggerFileVersion = swaggerFileVersion,
             info = info?.definition,
             tags = tags.map { tag -> SwaggerDefinition.Tag(tag.name, tag.description) },
-            paths = paths.map { path -> path.definition }
+            paths = paths.map { path -> path.definition },
+            definitions = referencedSchemas.map { (name, schema) -> name to schema.definition }.toMap()
         )
 
 }

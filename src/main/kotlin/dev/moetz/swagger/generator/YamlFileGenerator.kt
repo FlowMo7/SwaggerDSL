@@ -43,14 +43,32 @@ object YamlFileGenerator {
                         stringBuilder.append("$PADDING$it\n")
                     }
                 }
-
         }
+
+        if (definition.definitions.isNotEmpty()) {
+            stringBuilder.append("definitions:\n")
+            stringBuilder.append(
+                definition.definitions
+                    .map { (name, referencedDefinition) -> name to referencedDefinition.toYamlLines() }
+                    .joinToString(separator = "\n") { (name, yamlLines) ->
+                        yamlLines.joinToString(prefix = "$PADDING$name:\n", separator = "\n") { "$PADDING$PADDING$it" }
+                    }
+            )
+        }
+
         return stringBuilder.toString()
     }
 
 
+    /**
+     * Escapes the quotes (`"`) in the given string for a YAML string. (turns `"` into `\"`)
+     * @return the given receiver (string) with escaped quotes
+     */
     private fun String.escapeQuotes(): String = this.replace("\"", "\\\"")
 
+    /**
+     * @return a list of lines for the YAML definition which represents the info elements of the swagger specification.
+     */
     private fun SwaggerDefinition.Info.getYamlLines(): List<String> {
         val list = mutableListOf("info:")
 
@@ -235,6 +253,9 @@ object YamlFileGenerator {
                 }
 
                 return list.toList()
+            }
+            is SwaggerDefinition.Path.SchemaDefinition.ReferencedSchemaDefinition -> {
+                return listOf("\$ref: '#/definitions/$name'")
             }
         }
     }

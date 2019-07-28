@@ -5,7 +5,8 @@ data class SwaggerDefinition(
     val swaggerFileVersion: String,
     val info: Info?,
     val tags: List<Tag>,
-    val paths: List<Path>
+    val paths: List<Path>,
+    val definitions: Map<String, Path.SchemaDefinition>
 ) {
     data class Info(
         val description: String?,
@@ -78,6 +79,13 @@ data class SwaggerDefinition(
                 val example: String?,
                 val format: String?,
                 val enum: List<String>?
+            ) : SchemaDefinition()
+
+            data class ReferencedSchemaDefinition(
+                val name: String?,
+                override val type: String,
+                override val description: String?,
+                override val required: Boolean?
             ) : SchemaDefinition()
         }
     }

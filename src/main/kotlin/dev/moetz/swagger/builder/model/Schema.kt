@@ -5,19 +5,9 @@ import dev.moetz.swagger.definition.SwaggerDefinition
 
 sealed class Schema {
 
-    protected abstract val type: String
+    internal abstract val type: String
     abstract val definition: SwaggerDefinition.Path.SchemaDefinition
-
-    companion object {
-
-        inline fun createObject(receiver: ObjectSchema.() -> Unit): Schema = ObjectSchema().also(receiver)
-
-        inline fun createArray(receiver: ArraySchema.() -> Unit): Schema = ArraySchema().also(receiver)
-
-        inline fun createType(type: String, receiver: TypeSchema.() -> Unit): Schema = TypeSchema(type).also(receiver)
-
-    }
-
+    abstract val name: String?
 
     protected var required: Boolean? = null
         private set
@@ -28,8 +18,10 @@ sealed class Schema {
 
 }
 
-
-class ObjectSchema @PublishedApi internal constructor() : Schema() {
+class ObjectSchema
+@PublishedApi internal constructor(
+    override val name: String?
+) : Schema() {
 
     override val type: String
         get() = "object"
@@ -59,10 +51,12 @@ class ObjectSchema @PublishedApi internal constructor() : Schema() {
             properties = properties.map { (name, schema) -> Pair(name, schema.definition) }
         )
 
-
 }
 
-class ArraySchema @PublishedApi internal constructor() : Schema() {
+class ArraySchema
+@PublishedApi internal constructor(
+    override val name: String?
+) : Schema() {
 
     override val type: String
         get() = "array"
@@ -92,7 +86,11 @@ class ArraySchema @PublishedApi internal constructor() : Schema() {
 
 }
 
-class TypeSchema @PublishedApi internal constructor(override val type: String) : Schema() {
+class TypeSchema
+@PublishedApi internal constructor(
+    override val type: String,
+    override val name: String?
+) : Schema() {
 
     private var description: String? = null
     private var example: String? = null
@@ -125,6 +123,30 @@ class TypeSchema @PublishedApi internal constructor(override val type: String) :
             example = example,
             format = format,
             enum = enum
+        )
+
+}
+
+
+class ReferencedSchema
+@PublishedApi internal constructor(
+    override val name: String?,
+    override val type: String
+) : Schema() {
+
+
+    @PublishedApi
+    internal constructor(schema: Schema) : this(
+        name = schema.name ?: throw IllegalArgumentException("name needs to be set in referenced schemas"),
+        type = schema.type
+    )
+
+    override val definition: SwaggerDefinition.Path.SchemaDefinition
+        get() = SwaggerDefinition.Path.SchemaDefinition.ReferencedSchemaDefinition(
+            name = name,
+            type = type,
+            description = "",
+            required = null
         )
 
 }
