@@ -1,5 +1,5 @@
 plugins {
-    id 'org.jetbrains.kotlin.jvm' version '1.3.40'
+    id 'org.jetbrains.kotlin.jvm' version '1.3.41'
     id "org.jetbrains.dokka" version "0.9.18"
     id "com.jfrog.bintray" version "1.8.4"
     id "com.github.dcendents.android-maven" version "1.4.1"
@@ -16,9 +16,9 @@ repositories {
 
 ext {
     okHttpVersion = "3.14.2"
-    kotlinVersion = "1.3.40"
+    kotlinVersion = "1.3.41"
     mockkVersion = "1.9.3"
-    kluentVersion = "1.50"
+    kluentVersion = "1.53"
 }
 
 dependencies {
