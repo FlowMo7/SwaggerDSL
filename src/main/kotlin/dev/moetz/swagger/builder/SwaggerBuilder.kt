@@ -68,6 +68,7 @@ class SwaggerBuilder
      *
      * See [SwaggerBuilder.Info] for more information.
      */
+    @SwaggerDsl
     inline fun info(receiver: Info.() -> Unit) {
         this.info = Info().also(receiver)
     }
@@ -87,6 +88,7 @@ class SwaggerBuilder
         /**
          * Adds a general description to the swagger information (may be multi-line).
          */
+        @SwaggerDsl
         fun description(description: String) {
             this.description = description
         }
@@ -94,6 +96,7 @@ class SwaggerBuilder
         /**
          * Defines a version for the given swagger definition.
          */
+        @SwaggerDsl
         fun version(version: String) {
             this.version = version
         }
@@ -101,6 +104,7 @@ class SwaggerBuilder
         /**
          * Adds a title for the swagger definition.
          */
+        @SwaggerDsl
         fun title(title: String) {
             this.title = title
         }
@@ -108,6 +112,7 @@ class SwaggerBuilder
         /**
          * Defines the host for the given swagger definition.
          */
+        @SwaggerDsl
         fun host(host: String) {
             this.host = host
         }
@@ -115,6 +120,7 @@ class SwaggerBuilder
         /**
          * Adds a base-path for the given swagger definition.
          */
+        @SwaggerDsl
         fun basePath(basePath: String) {
             this.basePath = basePath
         }
@@ -122,6 +128,7 @@ class SwaggerBuilder
         /**
          * Defines the schemes for the given swagger definition.
          */
+        @SwaggerDsl
         fun schemes(vararg schemes: String) {
             this.schemes = schemes.toList()
         }
@@ -154,6 +161,7 @@ class SwaggerBuilder
      * @param description The description of this tag (may be multiline).
      * @throws IllegalArgumentException if the tag with the given name is already set.
      */
+    @SwaggerDsl
     fun tag(name: String, description: String) {
         if (tags.any { tag -> tag.name.equals(name, ignoreCase = true) }) {
             throw IllegalArgumentException("tag with name '$name' already set.")
@@ -178,6 +186,7 @@ class SwaggerBuilder
      * @param method The method for this path-definition.
      * @throws IllegalArgumentException if a path-definition with the given path and method is already defined
      */
+    @SwaggerDsl
     inline fun path(path: String, method: String, receiver: Path.() -> Unit) {
         if (paths.any { it.path == path && it.method == method }) {
             throw IllegalArgumentException("Path-definition with path '$path' and method '$method' already set")
@@ -201,34 +210,42 @@ class SwaggerBuilder
         internal val responses: MutableList<Response> = mutableListOf()
 
 
+        @SwaggerDsl
         fun tags(vararg tag: String) {
             this.tags.addAll(tag.toList())
         }
 
+        @SwaggerDsl
         fun summary(summary: String) {
             this.summary = summary
         }
 
+        @SwaggerDsl
         fun description(description: String) {
             this.description = description
         }
 
+        @SwaggerDsl
         fun produces(vararg produces: String) {
             this.produces.addAll(produces.toList())
         }
 
+        @SwaggerDsl
         fun operationId(operationId: String) {
             this.operationId = operationId
         }
 
+        @SwaggerDsl
         inline fun response(status: Int, receiver: Response.() -> Unit) {
             this.responses.add(Response(status).also(receiver))
         }
 
+        @SwaggerDsl
         inline fun pathParameter(name: String, type: String, receiver: PathParameter.() -> Unit) {
             this.parameters.add(PathParameter(name, type).also(receiver))
         }
 
+        @SwaggerDsl
         inline fun queryParameter(name: String, receiver: QueryParameter.() -> Unit) {
             this.parameters.add(QueryParameter(name).also(receiver))
         }
@@ -238,12 +255,14 @@ class SwaggerBuilder
 
             private var description: String? = null
 
+            @SwaggerDsl
             fun description(description: String) {
                 this.description = description
             }
 
             private var schema: Schema? = null
 
+            @SwaggerDsl
             fun schema(schema: Schema) {
                 this.schema = schema
             }

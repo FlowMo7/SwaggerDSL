@@ -1,5 +1,6 @@
 package dev.moetz.swagger.builder.model
 
+import dev.moetz.swagger.builder.SwaggerDsl
 import dev.moetz.swagger.definition.SwaggerDefinition
 
 sealed class Parameter {
@@ -14,26 +15,32 @@ sealed class Parameter {
     protected open var type: String? = null
     private var enum: List<String>? = null
 
+    @SwaggerDsl
     fun description(description: String) {
         this.description = description
     }
 
+    @SwaggerDsl
     fun default(default: String) {
         this.default = default
     }
 
+    @SwaggerDsl
     fun required(required: Boolean) {
         this.required = required
     }
 
+    @SwaggerDsl
     fun schema(schema: Schema) {
         this.schema = schema
     }
 
+    @SwaggerDsl
     fun type(type: String) {
         this.type = type
     }
 
+    @SwaggerDsl
     fun enum(vararg enum: String) {
         this.enum = enum.toList()
     }

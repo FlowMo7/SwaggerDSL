@@ -1,5 +1,6 @@
 package dev.moetz.swagger.builder.model
 
+import dev.moetz.swagger.builder.SwaggerDsl
 import dev.moetz.swagger.definition.SwaggerDefinition
 
 
@@ -12,6 +13,7 @@ sealed class Schema {
     protected var required: Boolean? = null
         private set
 
+    @SwaggerDsl
     fun required(required: Boolean = true) {
         this.required = required
     }
@@ -31,10 +33,12 @@ class ObjectSchema
 
     private var description: String? = null
 
+    @SwaggerDsl
     fun description(description: String) {
         this.description = description
     }
 
+    @SwaggerDsl
     fun property(name: String, schema: Schema) {
         if (properties.any { it.first == name }) {
             throw IllegalArgumentException("Property with name '$name' already set")
@@ -64,6 +68,7 @@ class ArraySchema
 
     private var description: String? = null
 
+    @SwaggerDsl
     fun description(description: String) {
         this.description = description
     }
@@ -71,6 +76,7 @@ class ArraySchema
 
     private var itemsSchema: Schema? = null
 
+    @SwaggerDsl
     fun items(itemsSchema: Schema) {
         this.itemsSchema = itemsSchema
     }
@@ -98,18 +104,22 @@ class TypeSchema
     private var enum: List<String>? = null
 
 
+    @SwaggerDsl
     fun description(description: String) {
         this.description = description
     }
 
+    @SwaggerDsl
     fun example(example: String) {
         this.example = example
     }
 
+    @SwaggerDsl
     fun format(format: String) {
         this.format = format
     }
 
+    @SwaggerDsl
     fun enum(vararg enum: String) {
         this.enum = enum.toList()
     }
