@@ -26,6 +26,7 @@ import javax.activation.MimetypesFileTypeMap
  */
 class SwaggerHandler(
     swaggerDefinition: SwaggerDefinition,
+    private val swaggerYamlUrl: String = "./swagger.yml",
     okHttpClient: OkHttpClient,
     cacheDirectory: File = File("./cache"),
     cacheSizeInByte: Long = 1 * 1024 * 1024L /* default: 1 MB*/
@@ -78,7 +79,7 @@ class SwaggerHandler(
 
     private fun getIndexFile(): ByteArray? {
         return getUI("index.html")?.toString(Charset.defaultCharset())
-            ?.replace(SWAGGER_URL_TO_REPLACE, "./swagger.yml")
+            ?.replace(SWAGGER_URL_TO_REPLACE, swaggerYamlUrl)
             ?.toByteArray()
     }
 
