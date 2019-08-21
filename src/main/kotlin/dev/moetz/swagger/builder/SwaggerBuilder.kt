@@ -11,12 +11,46 @@ class SwaggerBuilder
     @PublishedApi
     internal val referencedSchemas: MutableMap<String, Schema> = mutableMapOf()
 
+    /**
+     * Creates a new object schema (specified using the given [receiver] lambda), and adds it to the internal list of
+     * schemas if a name is given and later referenced by just calling [getNamedSchema].
+     *
+     * @param name An optional name of the given schema. If set, this schema will be added to the internal list of
+     * schemas and later referenced by just calling [getNamedSchema].
+     * @param receiver The lambda to add specifications for this schema.
+     *
+     * @return The created [Schema]. If a [name] is given, this will be an instance of [ReferencedSchema],
+     * otherwise this will be an instance of [ObjectSchema].
+     */
     inline fun createObjectSchema(name: String? = null, receiver: ObjectSchema.() -> Unit): Schema =
         ObjectSchema(name = name).also(receiver).handleAndReturnReferencedIfNamed(this)
 
+    /**
+     * Creates a new array schema (specified using the given [receiver] lambda), and adds it to the internal list of
+     * schemas if a name is given and later referenced by just calling [getNamedSchema].
+     *
+     * @param name An optional name of the given schema. If set, this schema will be added to the internal list of
+     * schemas and later referenced by just calling [getNamedSchema].
+     * @param receiver The lambda to add specifications for this schema.
+     *
+     * @return The created [Schema]. If a [name] is given, this will be an instance of [ArraySchema],
+     * otherwise this will be an instance of [ObjectSchema].
+     */
     inline fun createArraySchema(name: String? = null, receiver: ArraySchema.() -> Unit): Schema =
         ArraySchema(name = name).also(receiver).handleAndReturnReferencedIfNamed(this)
 
+    /**
+     * Creates a new type schema (specified using the given [receiver] lambda), and adds it to the internal list of
+     * schemas if a name is given and later referenced by just calling [getNamedSchema].
+     *
+     * @param type The type of this type-schema.
+     * @param name An optional name of the given schema. If set, this schema will be added to the internal list of
+     * schemas and later referenced by just calling [getNamedSchema].
+     * @param receiver The lambda to add specifications for this schema.
+     *
+     * @return The created [Schema]. If a [name] is given, this will be an instance of [TypeSchema],
+     * otherwise this will be an instance of [ObjectSchema].
+     */
     inline fun createTypeSchema(
         type: String,
         name: String? = null,
@@ -38,6 +72,10 @@ class SwaggerBuilder
         }
     }
 
+    /**
+     * @return a [ReferencedSchema] of any schema added before using [createObjectSchema], [createArraySchema] or
+     * [createTypeSchema] with a name as parameter.
+     */
     fun getNamedSchema(name: String): Schema {
         val schema =
             referencedSchemas[name] ?: throw IllegalArgumentException("Could not find named schema '$name'")
@@ -203,11 +241,13 @@ class SwaggerBuilder
         private var summary: String? = null
         private var description: String? = null
         private val produces: MutableList<String> = mutableListOf()
+        private val consumes: MutableList<String> = mutableListOf()
         private var operationId: String? = null
         @PublishedApi
         internal val parameters: MutableList<Parameter> = mutableListOf()
         @PublishedApi
         internal val responses: MutableList<Response> = mutableListOf()
+        private var deprecated: Boolean? = null
 
 
         @SwaggerDsl
@@ -231,6 +271,11 @@ class SwaggerBuilder
         }
 
         @SwaggerDsl
+        fun consumes(vararg consumes: String) {
+            this.consumes.addAll(consumes.toList())
+        }
+
+        @SwaggerDsl
         fun operationId(operationId: String) {
             this.operationId = operationId
         }
@@ -248,6 +293,21 @@ class SwaggerBuilder
         @SwaggerDsl
         inline fun queryParameter(name: String, receiver: QueryParameter.() -> Unit) {
             this.parameters.add(QueryParameter(name).also(receiver))
+        }
+
+        @SwaggerDsl
+        inline fun bodyParameter(name: String, receiver: BodyParameter.() -> Unit) {
+            this.parameters.add(BodyParameter(name).also(receiver))
+        }
+
+        @SwaggerDsl
+        inline fun headerParameter(name: String, receiver: HeaderParameter.() -> Unit) {
+            this.parameters.add(HeaderParameter(name).also(receiver))
+        }
+
+        @SwaggerDsl
+        fun deprecated() {
+            this.deprecated = true
         }
 
 
@@ -284,9 +344,11 @@ class SwaggerBuilder
                 summary = summary,
                 description = description,
                 produces = produces.toList(),
+                consumes = consumes.toList(),
                 operationId = operationId,
                 parameters = parameters.map { parameter -> parameter.definition },
-                responses = responses.map { response -> response.definition }
+                responses = responses.map { response -> response.definition },
+                deprecated = deprecated
             )
 
     }

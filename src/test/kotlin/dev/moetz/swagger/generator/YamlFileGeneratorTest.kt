@@ -96,7 +96,7 @@ paths:
   "/status":
     get:
       tags:
-      - status
+        - status
       summary: "Endpoint to check the API status"
       description: "Returns 200 on a healthy API with some additional information."
       operationId: "status"
@@ -123,18 +123,18 @@ definitions:
       km:
         type: number
         description: "The km of this hektometer point"
-        example: '7.6'
-        format: 'double'
+        example: "7.6"
+        format: "double"
       lat:
         type: number
         description: "The latitude of this hektometer point"
-        example: '48.57564545816002'
-        format: 'double'
+        example: "48.57564545816002"
+        format: "double"
       lng:
         type: number
         description: "The longitude of this hektometer point"
-        example: '16.701478681218024'
-        format: 'double'
+        example: "16.701478681218024"
+        format: "double"
 """.trimMargin()
     }
 

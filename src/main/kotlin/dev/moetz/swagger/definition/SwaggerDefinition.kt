@@ -26,19 +26,20 @@ data class SwaggerDefinition(
         val path: String,
         val method: String,
         val tags: List<String>,
-        var summary: String?,
+        val summary: String?,
         val description: String?,
         val produces: List<String>,
+        val consumes: List<String>,
         val operationId: String?,
         val parameters: List<ParameterDefinition>,
-        val responses: List<ResponseDefinition>
+        val responses: List<ResponseDefinition>,
+        val deprecated: Boolean?
     ) {
 
         data class ParameterDefinition(
             val name: String,
             val `in`: String,
             val description: String?,
-            val default: String?,
             val required: Boolean?,
             val type: String?,
             val enum: List<String>?,

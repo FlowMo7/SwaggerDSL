@@ -9,7 +9,6 @@ sealed class Parameter {
     protected abstract val parameterIn: String
 
     private var description: String? = null
-    private var default: String? = null
     protected open var required: Boolean? = null
     private var schema: Schema? = null
     protected open var type: String? = null
@@ -21,11 +20,6 @@ sealed class Parameter {
     }
 
     @SwaggerDsl
-    fun default(default: String) {
-        this.default = default
-    }
-
-    @SwaggerDsl
     fun required(required: Boolean) {
         this.required = required
     }
@@ -33,10 +27,19 @@ sealed class Parameter {
     @SwaggerDsl
     fun schema(schema: Schema) {
         this.schema = schema
+        when (schema) {
+            is ArraySchema -> type("array")
+            is TypeSchema -> schema.type.takeIf { it != "object" }?.let { type(it) }
+            is ReferencedSchema -> schema.type.takeIf { it != "object" }?.let { type(it) }
+        }
     }
 
     @SwaggerDsl
     fun type(type: String) {
+        val allowedTypes = listOf("array", "boolean", "integer", "number", "object", "string")
+        if (allowedTypes.contains(type).not()) {
+            throw IllegalArgumentException("Type ${type} not allowed. Must be one of the allowed values: ${allowedTypes.joinToString()}")
+        }
         this.type = type
     }
 
@@ -51,7 +54,6 @@ sealed class Parameter {
             name = name,
             `in` = parameterIn,
             description = description,
-            default = default,
             required = required,
             type = type,
             enum = enum,
@@ -75,8 +77,13 @@ class PathParameter @PublishedApi internal constructor(
 
 
 class QueryParameter @PublishedApi internal constructor(override val name: String) : Parameter() {
+    override val parameterIn: String get() = "query"
+}
 
-    override val parameterIn: String
-        get() = "query"
+class BodyParameter @PublishedApi internal constructor(override val name: String) : Parameter() {
+    override val parameterIn: String get() = "body"
+}
 
+class HeaderParameter @PublishedApi internal constructor(override val name: String) : Parameter() {
+    override val parameterIn: String get() = "header"
 }
