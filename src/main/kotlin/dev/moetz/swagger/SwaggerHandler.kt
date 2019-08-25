@@ -102,9 +102,15 @@ class SwaggerHandler(
 
 
     companion object {
+        /**
+         * The root URL for the swagger UI to fetch.
+         */
         private const val SWAGGER_UI_GITHUB_ROOT =
             "https://raw.githubusercontent.com/swagger-api/swagger-ui/master/dist/"
 
+        /**
+         * The url in the swagger UI to replace with the actual URL of the swagger definition file.
+         */
         private const val SWAGGER_URL_TO_REPLACE = "https://petstore.swagger.io/v2/swagger.json"
     }
 

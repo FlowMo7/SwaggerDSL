@@ -3,6 +3,11 @@ package dev.moetz.swagger.builder
 import dev.moetz.swagger.builder.model.*
 import dev.moetz.swagger.definition.SwaggerDefinition
 
+/**
+ * SDL class to build a swagger definition.
+ *
+ * @param swaggerFileVersion The version of the swagger definition file, defaults to `2.0`.
+ */
 class SwaggerBuilder
 @PublishedApi internal constructor(
     private val swaggerFileVersion: String = "2.0"
@@ -232,6 +237,12 @@ class SwaggerBuilder
         this.paths.add(Path(path, method).also(receiver))
     }
 
+    /**
+     * DSL class for a path definition.
+     *
+     * @param path The name of the path for this definition.
+     * @param method The method for this definition.
+     */
     class Path @PublishedApi internal constructor(
         @PublishedApi internal val path: String,
         @PublishedApi internal val method: String
@@ -250,71 +261,148 @@ class SwaggerBuilder
         private var deprecated: Boolean? = null
 
 
+        /**
+         * Group this path definition within the given [path].
+         *
+         * Paths need to be defined using [SwaggerBuilder.tag].
+         */
         @SwaggerDsl
         fun tags(vararg tag: String) {
             this.tags.addAll(tag.toList())
         }
 
+        /**
+         * Defines the summary for this path definition.
+         *
+         * @param summary the summary to set
+         */
         @SwaggerDsl
         fun summary(summary: String) {
             this.summary = summary
         }
 
+        /**
+         * Defines the description for this path definition.
+         *
+         * @param description the description to set
+         */
         @SwaggerDsl
         fun description(description: String) {
             this.description = description
         }
 
+        /**
+         * Defines a list of content type this path definition produces.
+         *
+         * @param produces The content-type(s) this path definition produces.
+         */
         @SwaggerDsl
         fun produces(vararg produces: String) {
             this.produces.addAll(produces.toList())
         }
 
+        /**
+         * Defines a list of content type this path definition consumes.
+         *
+         * @param consumes The content-type(s) this path definition consumes.
+         */
         @SwaggerDsl
         fun consumes(vararg consumes: String) {
             this.consumes.addAll(consumes.toList())
         }
 
+        /**
+         * Defines the [operationId] of this path definition.
+         *
+         * @param operationId the id of the operation of this path definition.
+         */
         @SwaggerDsl
         fun operationId(operationId: String) {
             this.operationId = operationId
         }
 
+        /**
+         * Add a response to the given path
+         *
+         * @param status The (HTTP) status code of this response
+         * @param receiver The lambda with the [Response] DSL to define the response
+         */
         @SwaggerDsl
         inline fun response(status: Int, receiver: Response.() -> Unit) {
             this.responses.add(Response(status).also(receiver))
         }
 
+        /**
+         * Add a parameter placed in the path to this definition.
+         *
+         * @param name The name of the parameter, as it is in curly brackets in the path.
+         * If e.g. the path is '/cat/{catId}', then the [name] for this parameter is `catId`.
+         * @param type The type of the parameter.
+         * @param receiver The lambda with the [PathParameter] DSL to define the parameter specification
+         */
         @SwaggerDsl
         inline fun pathParameter(name: String, type: String, receiver: PathParameter.() -> Unit) {
             this.parameters.add(PathParameter(name, type).also(receiver))
         }
 
+        /**
+         * Add a query parameter to this definition.
+         *
+         * @param name The name of the query parameter.
+         * For e.g. a call like '/cat?catId=42', the [name] of the query-parameter is `catId`
+         * @param receiver The lambda with the [QueryParameter] DSL to define the parameter specification
+         */
         @SwaggerDsl
         inline fun queryParameter(name: String, receiver: QueryParameter.() -> Unit) {
             this.parameters.add(QueryParameter(name).also(receiver))
         }
 
+        /**
+         * Add a body to this definition.
+         *
+         * @param name The name of the body parameter.
+         * @param receiver The lambda with the [BodyParameter] DSL to define the body parameter specification
+         */
         @SwaggerDsl
         inline fun bodyParameter(name: String, receiver: BodyParameter.() -> Unit) {
             this.parameters.add(BodyParameter(name).also(receiver))
         }
 
+        /**
+         * Add a parameter placed in the header to this definition.
+         *
+         * @param name The name of the parameter, as the header name should be.
+         * For e.g. the header `X-APP-ID: some-client-id` the name is `X-APP-ID`.
+         * @param receiver The lambda with the [HeaderParameter] DSL to define the parameter specification
+         */
         @SwaggerDsl
         inline fun headerParameter(name: String, receiver: HeaderParameter.() -> Unit) {
             this.parameters.add(HeaderParameter(name).also(receiver))
         }
 
+        /**
+         * Mark this path-definition as deprecated.
+         */
         @SwaggerDsl
         fun deprecated() {
             this.deprecated = true
         }
 
 
+        /**
+         * The DSL builder class for a [Response].
+         *
+         * @param status The HTTP stats code of this [Response]
+         */
         class Response @PublishedApi internal constructor(private val status: Int) {
 
             private var description: String? = null
 
+            /**
+             * Set the description of this [Response].
+             *
+             * @param description The description to set of the response.
+             */
             @SwaggerDsl
             fun description(description: String) {
                 this.description = description
@@ -322,11 +410,19 @@ class SwaggerBuilder
 
             private var schema: Schema? = null
 
+            /**
+             * Define the [Schema] of the response object.
+             *
+             * @param schema The schema to set for this response.
+             */
             @SwaggerDsl
             fun schema(schema: Schema) {
                 this.schema = schema
             }
 
+            /**
+             * Provides the [SwaggerDefinition.Path.ResponseDefinition] representation of this [Response].
+             */
             internal val definition: SwaggerDefinition.Path.ResponseDefinition
                 get() = SwaggerDefinition.Path.ResponseDefinition(
                     status = status,
@@ -336,6 +432,9 @@ class SwaggerBuilder
         }
 
 
+        /**
+         * Provides the [SwaggerDefinition.Path] representation of this [Path] definition.
+         */
         val definition: SwaggerDefinition.Path
             get() = SwaggerDefinition.Path(
                 path = path,
