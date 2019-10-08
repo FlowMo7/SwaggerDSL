@@ -23,13 +23,15 @@ import javax.activation.MimetypesFileTypeMap
  * @param okHttpClient the OkHttpClient to use to fetch the swagger-ui to serve. This [OkHttpClient] is altered as a new builder to apply caching logic.
  * @param cacheDirectory The directory to cache the swagger-ui in.
  * @param cacheSizeInByte The maximum size of the cache to use for the swagger-ui within the cacheDirectory.
+ * @param hideSwaggerUrlField Whether the url field in the toolbar should be hidden.
  */
 class SwaggerHandler(
-    swaggerDefinition: SwaggerDefinition,
-    private val swaggerYamlUrl: String = "./swagger.yml",
-    okHttpClient: OkHttpClient,
-    cacheDirectory: File = File("./cache"),
-    cacheSizeInByte: Long = 1 * 1024 * 1024L /* default: 1 MB*/
+        swaggerDefinition: SwaggerDefinition,
+        private val swaggerYamlUrl: String = "./swagger.yml",
+        okHttpClient: OkHttpClient,
+        cacheDirectory: File = File("./cache"),
+        cacheSizeInByte: Long = 1 * 1024 * 1024L /* default: 1 MB*/,
+        private val hideSwaggerUrlField: Boolean = true
 ) {
 
     init {
@@ -48,15 +50,15 @@ class SwaggerHandler(
      * This [OkHttpClient] contains a cache and applies caching-headers to the response to enable caching.
      */
     private val cachedOkHttpClient: OkHttpClient = okHttpClient.newBuilder()
-        .addNetworkInterceptor { chain ->
-            val response = chain.proceed(chain.request())
-            response
-                .newBuilder()
-                .header("Cache-Control", "max-age=${TimeUnit.DAYS.toSeconds(6 * 30)}")
-                .build()
-        }
-        .cache(Cache(cacheDirectory, cacheSizeInByte))
-        .build()
+            .addNetworkInterceptor { chain ->
+                val response = chain.proceed(chain.request())
+                response
+                        .newBuilder()
+                        .header("Cache-Control", "max-age=${TimeUnit.DAYS.toSeconds(6 * 30)}")
+                        .build()
+            }
+            .cache(Cache(cacheDirectory, cacheSizeInByte))
+            .build()
 
 
     /**
@@ -79,14 +81,22 @@ class SwaggerHandler(
 
     private fun getIndexFile(): ByteArray? {
         return getUI("index.html")?.toString(Charset.defaultCharset())
-            ?.replace(SWAGGER_URL_TO_REPLACE, swaggerYamlUrl)
-            ?.toByteArray()
+                ?.replace(SWAGGER_URL_TO_REPLACE, swaggerYamlUrl)
+                ?.let { html ->
+                    // add display:none css attribute to the form if the url in toolbar should not be editable / displayed.
+                    if (hideSwaggerUrlField) {
+                        html.replace("</style>", " $SWAGGER_STYLE_CODE_TO_HIDE_URL_FIELD</style>")
+                    } else {
+                        html
+                    }
+                }
+                ?.toByteArray()
     }
 
     private fun getUI(uri: String): ByteArray? {
         return cachedOkHttpClient
-            .newCall(Request.Builder().get().url(SWAGGER_UI_GITHUB_ROOT + uri).build())
-            .execute().body()?.bytes()
+                .newCall(Request.Builder().get().url(SWAGGER_UI_GITHUB_ROOT + uri).build())
+                .execute().body()?.bytes()
     }
 
     private fun String.getMimeType(): String {
@@ -106,12 +116,14 @@ class SwaggerHandler(
          * The root URL for the swagger UI to fetch.
          */
         private const val SWAGGER_UI_GITHUB_ROOT =
-            "https://raw.githubusercontent.com/swagger-api/swagger-ui/master/dist/"
+                "https://raw.githubusercontent.com/swagger-api/swagger-ui/master/dist/"
 
         /**
          * The url in the swagger UI to replace with the actual URL of the swagger definition file.
          */
         private const val SWAGGER_URL_TO_REPLACE = "https://petstore.swagger.io/v2/swagger.json"
+
+        private const val SWAGGER_STYLE_CODE_TO_HIDE_URL_FIELD = ".download-url-wrapper { display: none !important; }"
     }
 
 }
