@@ -19,7 +19,7 @@ allprojects {
 }
 
 dependencies {
-    implementation 'dev.moetz:swagger-dsl:0.1.3'
+    implementation 'dev.moetz:swagger-dsl:0.1.4'
 }
 ```
 
