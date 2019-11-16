@@ -26,9 +26,17 @@ class SwaggerBuilder
      *
      * @return The created [Schema]. If a [name] is given, this will be an instance of [ReferencedSchema],
      * otherwise this will be an instance of [ObjectSchema].
+     * @throws Schema.ValidationException
      */
-    inline fun createObjectSchema(name: String? = null, receiver: ObjectSchema.() -> Unit): Schema =
-        ObjectSchema(name = name).also(receiver).handleAndReturnReferencedIfNamed(this)
+    inline fun createObjectSchema(name: String? = null, receiver: ObjectSchema.() -> Unit): Schema {
+        val schema = try {
+            ObjectSchema(name = name).also(receiver)
+        } catch (validationException: Schema.ValidationException) {
+            throw validationException.fillSchemaStack("object", name)
+        }
+        schema.validate()
+        return schema.handleAndReturnReferencedIfNamed(this)
+    }
 
     /**
      * Creates a new array schema (specified using the given [receiver] lambda), and adds it to the internal list of
@@ -40,9 +48,17 @@ class SwaggerBuilder
      *
      * @return The created [Schema]. If a [name] is given, this will be an instance of [ArraySchema],
      * otherwise this will be an instance of [ObjectSchema].
+     * @throws Schema.ValidationException
      */
-    inline fun createArraySchema(name: String? = null, receiver: ArraySchema.() -> Unit): Schema =
-        ArraySchema(name = name).also(receiver).handleAndReturnReferencedIfNamed(this)
+    inline fun createArraySchema(name: String? = null, receiver: ArraySchema.() -> Unit): Schema {
+        val schema = try {
+            ArraySchema(name = name).also(receiver)
+        } catch (validationException: Schema.ValidationException) {
+            throw validationException.fillSchemaStack("array", name)
+        }
+        schema.validate()
+        return schema.handleAndReturnReferencedIfNamed(this)
+    }
 
     /**
      * Creates a new type schema (specified using the given [receiver] lambda), and adds it to the internal list of
@@ -55,13 +71,21 @@ class SwaggerBuilder
      *
      * @return The created [Schema]. If a [name] is given, this will be an instance of [TypeSchema],
      * otherwise this will be an instance of [ObjectSchema].
+     * @throws Schema.ValidationException
      */
     inline fun createTypeSchema(
         type: String,
         name: String? = null,
         receiver: TypeSchema.() -> Unit
-    ): Schema =
-        TypeSchema(type = type, name = name).also(receiver).handleAndReturnReferencedIfNamed(this)
+    ): Schema {
+        val schema = try {
+            TypeSchema(type = type, name = name).also(receiver)
+        } catch (validationException: Schema.ValidationException) {
+            throw validationException.fillSchemaStack(type, name)
+        }
+        schema.validate()
+        return schema.handleAndReturnReferencedIfNamed(this)
+    }
 
     @PublishedApi
     internal fun Schema.handleAndReturnReferencedIfNamed(swaggerBuilder: SwaggerBuilder): Schema {
@@ -78,12 +102,17 @@ class SwaggerBuilder
     }
 
     /**
+     * @param name The name of the [Schema] to reference.
      * @return a [ReferencedSchema] of any schema added before using [createObjectSchema], [createArraySchema] or
      * [createTypeSchema] with a name as parameter.
      */
     fun getNamedSchema(name: String): Schema {
         val schema =
             referencedSchemas[name] ?: throw IllegalArgumentException("Could not find named schema '$name'")
+        return ReferencedSchema(schema)
+    }
+
+    fun referenceRecursively(schema: Schema): Schema {
         return ReferencedSchema(schema)
     }
 

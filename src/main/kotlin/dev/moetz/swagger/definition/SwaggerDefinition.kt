@@ -79,7 +79,13 @@ data class SwaggerDefinition(
                 override val required: Boolean?,
                 val example: String?,
                 val format: String?,
-                val enum: List<String>?
+                val enum: List<String>?,
+                val minimum: Pair<Number, Boolean>?,
+                val maximum: Pair<Number, Boolean>?,
+                val multipleOf: Number?,
+                val minLength: Int?,
+                val maxLength: Int?,
+                val pattern: String?
             ) : SchemaDefinition()
 
             data class ReferencedSchemaDefinition(

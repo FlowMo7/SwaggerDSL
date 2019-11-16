@@ -267,6 +267,27 @@ object YamlFileGenerator {
                         "$PADDING- $enumValue"
                     })
                 }
+                minimum?.also { (minimum, exclusive) ->
+                    list.add("minimum: $minimum")
+                    list.add("exclusiveMinimum: $exclusive")
+                }
+                maximum?.also { (maximum, exclusive) ->
+                    list.add("maximum: $maximum")
+                    list.add("exclusiveMaximum: $exclusive")
+                }
+                multipleOf?.also { multipleOf ->
+                    list.add("multipleOf: $multipleOf")
+                }
+
+                minLength?.also { minLength ->
+                    list.add("minLength: $minLength")
+                }
+                maxLength?.also { maxLength ->
+                    list.add("maxLength: $maxLength")
+                }
+                pattern?.also { pattern ->
+                    list.add("pattern: $pattern")
+                }
 
                 return list.toList()
             }

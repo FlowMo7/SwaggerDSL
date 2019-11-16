@@ -1,10 +1,458 @@
 package dev.moetz.swagger.generator
 
 import dev.moetz.swagger.builder.SwaggerBuilder
+import dev.moetz.swagger.builder.model.Schema
 import org.amshove.kluent.shouldBeEqualTo
+import org.amshove.kluent.shouldThrow
 import org.junit.Test
 
 class YamlFileGeneratorTest {
+
+    @Test
+    fun testRecursiveSchemaDefinition() {
+        val definition = SwaggerBuilder.generate {
+            info {
+                title("Test API")
+                version("1.2.3")
+                description("Some API description")
+                host("swagger.example.org")
+                basePath("/swaggertest/")
+                schemes("https")
+            }
+
+            tag("someTag", "Some information about the tag")
+
+            path("/somePath", "get") {
+                operationId("somePath")
+                tags("someTag")
+
+
+                response(200) {
+                    schema(createObjectSchema(name = "SomeObject") {
+                        property("name", createTypeSchema(type = "string") {
+                            format("double")
+                            description("Some description")
+                        })
+
+                        property("recursiveObject", referenceRecursively(this))
+                    })
+                }
+            }
+        }
+
+        val generatedYaml = YamlFileGenerator.generate(definition)
+
+        generatedYaml shouldBeEqualTo """
+swagger: '2.0'
+info:
+  description: "Some API description"
+  version: '1.2.3'
+  title: "Test API"
+host: "swagger.example.org"
+basePath: "/swaggertest/"
+schemes:
+  - https
+tags:
+  - name: someTag
+    description: "Some information about the tag"
+paths:
+  "/somePath":
+    get:
+      tags:
+        - someTag
+      operationId: "somePath"
+      responses:
+        200:
+          schema:
+            ${"\$"}ref: '#/definitions/SomeObject'
+definitions:
+  SomeObject:
+    type: object
+    properties:
+      name:
+        type: string
+        description: "Some description"
+        format: "double"
+      recursiveObject:
+        ${"\$"}ref: '#/definitions/SomeObject'
+""".trimMargin()
+    }
+
+    @Test
+    fun testStringType() {
+        val definition = SwaggerBuilder.generate {
+            info {
+                title("Test API")
+                version("1.2.3")
+                description("Some API description")
+                host("swagger.example.org")
+                basePath("/swaggertest/")
+                schemes("https")
+            }
+
+            tag("someTag", "Some information about the tag")
+
+            path("/somePath", "get") {
+                operationId("somePath")
+                tags("someTag")
+
+
+                response(200) {
+                    schema(createObjectSchema(name = "SomeObject") {
+                        property("name", createTypeSchema(type = "string") {
+                            description("Some description")
+                            minLength(5)
+                            maxLength(10)
+                        })
+                    })
+                }
+            }
+        }
+
+        val generatedYaml = YamlFileGenerator.generate(definition)
+
+        generatedYaml shouldBeEqualTo """
+swagger: '2.0'
+info:
+  description: "Some API description"
+  version: '1.2.3'
+  title: "Test API"
+host: "swagger.example.org"
+basePath: "/swaggertest/"
+schemes:
+  - https
+tags:
+  - name: someTag
+    description: "Some information about the tag"
+paths:
+  "/somePath":
+    get:
+      tags:
+        - someTag
+      operationId: "somePath"
+      responses:
+        200:
+          schema:
+            ${"\$"}ref: '#/definitions/SomeObject'
+definitions:
+  SomeObject:
+    type: object
+    properties:
+      name:
+        type: string
+        description: "Some description"
+        minLength: 5
+        maxLength: 10
+""".trimMargin()
+    }
+
+    @Test
+    fun testPatternStringType() {
+        val definition = SwaggerBuilder.generate {
+            info {
+                title("Test API")
+                version("1.2.3")
+                description("Some API description")
+                host("swagger.example.org")
+                basePath("/swaggertest/")
+                schemes("https")
+            }
+
+            tag("someTag", "Some information about the tag")
+
+            path("/somePath", "get") {
+                operationId("somePath")
+                tags("someTag")
+
+
+                response(200) {
+                    schema(createObjectSchema(name = "SomeObject") {
+                        property("name", createTypeSchema(type = "string") {
+                            description("Some description")
+                            pattern("[1234]\\asdf\$")
+                        })
+                    })
+                }
+            }
+        }
+
+        val generatedYaml = YamlFileGenerator.generate(definition)
+
+        generatedYaml shouldBeEqualTo """
+swagger: '2.0'
+info:
+  description: "Some API description"
+  version: '1.2.3'
+  title: "Test API"
+host: "swagger.example.org"
+basePath: "/swaggertest/"
+schemes:
+  - https
+tags:
+  - name: someTag
+    description: "Some information about the tag"
+paths:
+  "/somePath":
+    get:
+      tags:
+        - someTag
+      operationId: "somePath"
+      responses:
+        200:
+          schema:
+            ${"\$"}ref: '#/definitions/SomeObject'
+definitions:
+  SomeObject:
+    type: object
+    properties:
+      name:
+        type: string
+        description: "Some description"
+        pattern: [1234]\asdf${'$'}
+""".trimMargin()
+    }
+
+    @Test
+    fun numberTypeSchemaShouldNotBeAbleToDefineLength() {
+        {
+            SwaggerBuilder.generate {
+                info {
+                    title("Test API")
+                    version("1.2.3")
+                    description("Some API description")
+                    host("swagger.example.org")
+                    basePath("/swaggertest/")
+                    schemes("https")
+                }
+
+                tag("someTag", "Some information about the tag")
+
+                path("/somePath", "get") {
+                    operationId("somePath")
+                    tags("someTag")
+
+
+                    response(200) {
+                        schema(createObjectSchema(name = "SomeObject") {
+                            property("name", createTypeSchema(type = "number") {
+                                description("Some description")
+                                minLength(5)
+                                maxLength(10)
+                            })
+                        })
+                    }
+                }
+            }
+        } shouldThrow Schema.ValidationException::class
+    }
+
+    @Test
+    fun numberTypeDefineMinAndMax() {
+        val definition = SwaggerBuilder.generate {
+            info {
+                title("Test API")
+                version("1.2.3")
+                description("Some API description")
+                host("swagger.example.org")
+                basePath("/swaggertest/")
+                schemes("https")
+            }
+
+            tag("someTag", "Some information about the tag")
+
+            path("/somePath", "get") {
+                operationId("somePath")
+                tags("someTag")
+
+
+                response(200) {
+                    schema(createObjectSchema(name = "SomeObject") {
+                        property("name", createTypeSchema(type = "number") {
+                            description("Some description")
+                            minimum(5, true)
+                            maximum(10, false)
+                        })
+                    })
+                }
+            }
+        }
+
+        val generatedYaml = YamlFileGenerator.generate(definition)
+
+        generatedYaml shouldBeEqualTo """
+swagger: '2.0'
+info:
+  description: "Some API description"
+  version: '1.2.3'
+  title: "Test API"
+host: "swagger.example.org"
+basePath: "/swaggertest/"
+schemes:
+  - https
+tags:
+  - name: someTag
+    description: "Some information about the tag"
+paths:
+  "/somePath":
+    get:
+      tags:
+        - someTag
+      operationId: "somePath"
+      responses:
+        200:
+          schema:
+            ${"\$"}ref: '#/definitions/SomeObject'
+definitions:
+  SomeObject:
+    type: object
+    properties:
+      name:
+        type: number
+        description: "Some description"
+        minimum: 5
+        exclusiveMinimum: true
+        maximum: 10
+        exclusiveMaximum: false
+""".trimMargin()
+    }
+
+    @Test
+    fun numberTypeDefineMultipleOf() {
+        val definition = SwaggerBuilder.generate {
+            info {
+                title("Test API")
+                version("1.2.3")
+                description("Some API description")
+                host("swagger.example.org")
+                basePath("/swaggertest/")
+                schemes("https")
+            }
+
+            tag("someTag", "Some information about the tag")
+
+            path("/somePath", "get") {
+                operationId("somePath")
+                tags("someTag")
+
+
+                response(200) {
+                    schema(createObjectSchema(name = "SomeObject") {
+                        property("name", createTypeSchema(type = "number") {
+                            description("Some description")
+                            multipleOf(2)
+                        })
+                    })
+                }
+            }
+        }
+
+        val generatedYaml = YamlFileGenerator.generate(definition)
+
+        generatedYaml shouldBeEqualTo """
+swagger: '2.0'
+info:
+  description: "Some API description"
+  version: '1.2.3'
+  title: "Test API"
+host: "swagger.example.org"
+basePath: "/swaggertest/"
+schemes:
+  - https
+tags:
+  - name: someTag
+    description: "Some information about the tag"
+paths:
+  "/somePath":
+    get:
+      tags:
+        - someTag
+      operationId: "somePath"
+      responses:
+        200:
+          schema:
+            ${"\$"}ref: '#/definitions/SomeObject'
+definitions:
+  SomeObject:
+    type: object
+    properties:
+      name:
+        type: number
+        description: "Some description"
+        multipleOf: 2
+""".trimMargin()
+    }
+
+    @Test
+    fun numberTypeDefineMinMaxAndMultipleOf() {
+        val definition = SwaggerBuilder.generate {
+            info {
+                title("Test API")
+                version("1.2.3")
+                description("Some API description")
+                host("swagger.example.org")
+                basePath("/swaggertest/")
+                schemes("https")
+            }
+
+            tag("someTag", "Some information about the tag")
+
+            path("/somePath", "get") {
+                operationId("somePath")
+                tags("someTag")
+
+
+                response(200) {
+                    schema(createObjectSchema(name = "SomeObject") {
+                        property("name", createTypeSchema(type = "number") {
+                            description("Some description")
+                            multipleOf(2)
+                            minimum(5, true)
+                            maximum(10, false)
+                        })
+                    })
+                }
+            }
+        }
+
+        val generatedYaml = YamlFileGenerator.generate(definition)
+
+        generatedYaml shouldBeEqualTo """
+swagger: '2.0'
+info:
+  description: "Some API description"
+  version: '1.2.3'
+  title: "Test API"
+host: "swagger.example.org"
+basePath: "/swaggertest/"
+schemes:
+  - https
+tags:
+  - name: someTag
+    description: "Some information about the tag"
+paths:
+  "/somePath":
+    get:
+      tags:
+        - someTag
+      operationId: "somePath"
+      responses:
+        200:
+          schema:
+            ${"\$"}ref: '#/definitions/SomeObject'
+definitions:
+  SomeObject:
+    type: object
+    properties:
+      name:
+        type: number
+        description: "Some description"
+        minimum: 5
+        exclusiveMinimum: true
+        maximum: 10
+        exclusiveMaximum: false
+        multipleOf: 2
+""".trimMargin()
+    }
 
     @Test
     fun simpleYamlDefinitionTest() {

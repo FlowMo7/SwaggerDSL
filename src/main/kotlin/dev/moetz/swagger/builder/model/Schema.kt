@@ -53,6 +53,26 @@ sealed class Schema {
         this.description = description
     }
 
+    /**
+     * Validates the schema and throws a [ValidationException] if the validation failed. Will return if the validation succeeded.
+     *
+     * @throws ValidationException
+     */
+    @Throws(ValidationException::class)
+    @PublishedApi
+    internal abstract fun validate()
+
+    class ValidationException(message: String, cause: Throwable? = null) : RuntimeException(message, cause) {
+        override val message: String?
+            get() = super.message + schemaStack.joinToString()
+
+        fun fillSchemaStack(type: String, name: String? = null): ValidationException {
+            schemaStack.add(type + if (name != null) " $name" else null)
+            return this
+        }
+
+        private val schemaStack: MutableList<String> = mutableListOf()
+    }
 }
 
 
@@ -86,6 +106,19 @@ class ObjectSchema
         properties.add(Pair(name, schema))
     }
 
+    @PublishedApi
+    override fun validate() {
+        properties.forEach { (propertyName, schema) ->
+            try {
+                schema.validate()
+            } catch (validationException: ValidationException) {
+                throw ValidationException(
+                    "Validation error in ObjectSchema '$name', property $propertyName: ${validationException.message}",
+                    validationException
+                )
+            }
+        }
+    }
 
     override val definition: SwaggerDefinition.Path.SchemaDefinition
         get() = SwaggerDefinition.Path.SchemaDefinition.ObjectSchemaDefinition(
@@ -123,6 +156,21 @@ class ArraySchema
         this.itemsSchema = itemsSchema
     }
 
+    @PublishedApi
+    override fun validate() {
+        if (itemsSchema == null) {
+            throw ValidationException("No item schema defined for ArraySchema. Add an item-schema using 'items(itemsSchema: Schema)'.")
+        }
+        try {
+            itemsSchema?.validate()
+        } catch (validationException: ValidationException) {
+            throw ValidationException(
+                "Validation error in items-schema of ArraySchema '$name': ${validationException.message}",
+                validationException
+            )
+        }
+    }
+
 
     override val definition: SwaggerDefinition.Path.SchemaDefinition
         get() = SwaggerDefinition.Path.SchemaDefinition.ArraySchemaDefinition(
@@ -143,6 +191,16 @@ class TypeSchema
     private var example: String? = null
     private var format: String? = null
     private var enum: List<String>? = null
+
+    //number & integer parameters
+    private var minimum: Pair<Number, Boolean>? = null
+    private var maximum: Pair<Number, Boolean>? = null
+    private var multipleOf: Number? = null
+
+    //string parameters
+    private var pattern: String? = null
+    private var minLength: Int? = null
+    private var maxLength: Int? = null
 
 
     /**
@@ -166,6 +224,83 @@ class TypeSchema
     }
 
     /**
+     * Set the [minimum] value allowed for this field.
+     *
+     * **This is only valid for '`integer`' and '`number`' types.**
+     *
+     * @param minimum The minimum value for this field
+     * @param exclusive Whether the given [minimum] value is inclusive or exclusive. Default is false, which means
+     * inclusive the given value.
+     */
+    @SwaggerDsl
+    fun minimum(minimum: Number, exclusive: Boolean = false) {
+        this.minimum = minimum to exclusive
+    }
+
+    /**
+     * Define the [maximum] value allowed for this field.
+     *
+     * **This is only valid for '`integer`' and '`number`' types.**
+     *
+     * @param maximum The maximum value for this field
+     * @param exclusive Whether the given [maximum] value is inclusive or exclusive. Default is false, which means
+     * inclusive the given value.
+     */
+    @SwaggerDsl
+    fun maximum(maximum: Number, exclusive: Boolean = false) {
+        this.maximum = maximum to exclusive
+    }
+
+    /**
+     * Define that the field only accepts multiples of the given value.
+     *
+     * **This is only valid for '`integer`' and '`number`' types.**
+     *
+     * @param multipleOf The number the given field is allowed to be multiples of.
+     */
+    @SwaggerDsl
+    fun multipleOf(multipleOf: Number) {
+        this.multipleOf = multipleOf
+    }
+
+
+    /**
+     * Define the minimum string length of this field.
+     *
+     * **This is only valid for fields with type '`string`'.**
+     *
+     * @param minLength The minimum length of the field (inclusive).
+     */
+    @SwaggerDsl
+    fun minLength(minLength: Int) {
+        this.minLength = minLength
+    }
+
+    /**
+     * Define the maximum string length of this field.
+     *
+     * **This is only valid for fields with type '`string`'.**
+     *
+     * @param maxLength The maximum length of the field (inclusive).
+     */
+    @SwaggerDsl
+    fun maxLength(maxLength: Int) {
+        this.maxLength = maxLength
+    }
+
+    /**
+     * Define a pattern for this field.
+     *
+     * **This is only valid for fields with type '`string`'.**
+     *
+     * @param pattern The regex-pattern this field need to honor.
+     */
+    @SwaggerDsl
+    fun pattern(pattern: String) {
+        this.pattern = pattern
+    }
+
+    /**
      * Set enum values for this element.
      *
      * @param enum The possible values of this element.
@@ -176,6 +311,48 @@ class TypeSchema
     }
 
 
+    @PublishedApi
+    override fun validate() {
+        //https://swagger.io/docs/specification/data-models/data-types/ (+ array, + object)
+        val validDataTypes = listOf("string", "number", "integer", "boolean")
+
+        if (validDataTypes.contains(type).not()) {
+            throw ValidationException("Type '$type' is not valid. Valid types are: ${validDataTypes.joinToString { "'$it'" }} (plus 'array' and 'object', but those have their own DSL method). See https://swagger.io/docs/specification/data-models/data-types/ for more details.")
+        }
+
+        when (type) {
+            "number" -> {
+                if ((format == null || format == "float" || format == "double").not()) {
+                    throw ValidationException("Type 'number' only allows the format to be either not set, 'float' or 'double'. See https://swagger.io/docs/specification/data-models/data-types/ for more details.")
+                }
+            }
+            "integer" -> {
+                if ((format == null || format == "int32" || format == "int64").not()) {
+                    throw ValidationException("Type 'integer' only allows the format to be either not set, 'int32' or 'int64'. See https://swagger.io/docs/specification/data-models/data-types/ for more details.")
+                }
+            }
+        }
+
+        if (type != "string" && pattern != null) {
+            throw ValidationException("Only 'string' types are allowed to specify a pattern. There is one defined (with type $type). See https://swagger.io/docs/specification/data-models/data-types/ for more details.")
+        }
+
+        if (type != "string" && (minLength != null || maxLength != null)) {
+            throw ValidationException("Only 'string' types are allowed to specify 'minLength' or 'maxLength'. There is one defined (with type $type). See https://swagger.io/docs/specification/data-models/data-types/ for more details.")
+        }
+
+
+        if (type != "number" && type != "integer") {
+            if (multipleOf != null) {
+                throw ValidationException("Only 'integer' and 'number' types are allowed to define 'multipleOf', which is defined (with type $type). See https://swagger.io/docs/specification/data-models/data-types/ for more details.")
+            }
+
+            if ((minimum != null || maximum != null)) {
+                throw ValidationException("'minimum' or 'maximum' are only allowed on types 'number' and 'integer', one is set (with type $type). See https://swagger.io/docs/specification/data-models/data-types/ for more details.")
+            }
+        }
+    }
+
     override val definition: SwaggerDefinition.Path.SchemaDefinition
         get() = SwaggerDefinition.Path.SchemaDefinition.TypeSchemaDefinition(
             type = type,
@@ -183,7 +360,13 @@ class TypeSchema
             required = required,
             example = example,
             format = format,
-            enum = enum
+            enum = enum,
+            minimum = minimum,
+            maximum = maximum,
+            multipleOf = multipleOf,
+            minLength = minLength,
+            maxLength = maxLength,
+            pattern = pattern
         )
 
 }
@@ -213,6 +396,11 @@ class ReferencedSchema
         name = schema.name ?: throw IllegalArgumentException("name needs to be set in referenced schemas"),
         type = schema.type
     )
+
+    @PublishedApi
+    override fun validate() {
+        //no validation performed here
+    }
 
     override val definition: SwaggerDefinition.Path.SchemaDefinition
         get() = SwaggerDefinition.Path.SchemaDefinition.ReferencedSchemaDefinition(
