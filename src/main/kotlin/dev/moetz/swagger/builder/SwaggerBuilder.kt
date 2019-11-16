@@ -112,6 +112,21 @@ class SwaggerBuilder
         return ReferencedSchema(schema)
     }
 
+    /**
+     * If a [Schema] needs to be referenced recursively, this method should be used to reference such a (named) [Schema]
+     * in favor of [getNamedSchema], which will throw an exception as the [Schema] is at the point of calling the
+     * method not yet registered.
+     *
+     * Example usage:
+     *
+     * ```
+     * schema(createObjectSchema(name = "SomeObject") {
+     *     property("recursiveObject", referenceRecursively(this))
+     * })
+     * ```
+     *
+     * @param schema The [Schema] to reference, most likely `this` at the calling site.
+     */
     fun referenceRecursively(schema: Schema): Schema {
         return ReferencedSchema(schema)
     }
