@@ -66,7 +66,8 @@ sealed class Schema {
         override val message: String?
             get() = super.message + schemaStack.joinToString()
 
-        fun fillSchemaStack(type: String, name: String? = null): ValidationException {
+        @PublishedApi
+        internal fun fillSchemaStack(type: String, name: String? = null): ValidationException {
             schemaStack.add(type + if (name != null) " $name" else null)
             return this
         }

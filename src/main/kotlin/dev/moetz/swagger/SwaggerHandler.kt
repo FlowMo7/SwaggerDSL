@@ -119,7 +119,7 @@ class SwaggerHandler(
     }
 
 
-    companion object {
+    private companion object {
         /**
          * The root URL for the swagger UI to fetch.
          */
