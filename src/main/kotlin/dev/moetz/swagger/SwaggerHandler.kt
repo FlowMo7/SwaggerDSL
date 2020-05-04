@@ -104,7 +104,7 @@ class SwaggerHandler(
     private fun getUI(uri: String): ByteArray? {
         return cachedOkHttpClient
             .newCall(Request.Builder().get().url(SWAGGER_UI_GITHUB_ROOT + uri).build())
-            .execute().body()?.bytes()
+            .execute().body?.bytes()
     }
 
     private fun String.getMimeType(): String {
