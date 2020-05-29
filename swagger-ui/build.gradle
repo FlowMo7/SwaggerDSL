@@ -12,8 +12,8 @@ repositories {
 dependencies {
     implementation "org.jetbrains.kotlin:kotlin-stdlib-jdk8"
 
-    compile("com.squareup.okhttp3:okhttp:$okHttpVersion")
-    compile("com.squareup.okhttp3:logging-interceptor:$okHttpVersion")
+//    compile("com.squareup.okhttp3:okhttp:$okHttpVersion")
+//    compile("com.squareup.okhttp3:logging-interceptor:$okHttpVersion")
 
     testCompile("junit:junit:4.13")
     testCompile("org.jetbrains.kotlin:kotlin-stdlib-jdk8:$kotlinVersion")

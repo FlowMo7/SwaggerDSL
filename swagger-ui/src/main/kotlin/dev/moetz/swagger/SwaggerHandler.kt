@@ -1,14 +1,8 @@
 package dev.moetz.swagger
 
-import dev.moetz.swagger.SwaggerHandler.Companion.SWAGGER_UI_GITHUB_ROOT
 import dev.moetz.swagger.definition.SwaggerDefinition
 import dev.moetz.swagger.generator.YamlFileGenerator
-import okhttp3.Cache
-import okhttp3.OkHttpClient
-import okhttp3.Request
-import java.io.File
 import java.nio.charset.Charset
-import java.util.concurrent.TimeUnit
 import javax.activation.MimetypesFileTypeMap
 
 
@@ -16,28 +10,19 @@ import javax.activation.MimetypesFileTypeMap
  * A handler which returns the swagger ui file contents as well as the swaggerDefinition as a yaml file respectively
  * when calling [get] with a relative url for the swagger path handling.
  *
- * This fetches the swagger ui files from the github repository at [SWAGGER_UI_GITHUB_ROOT] and caches them within the
- * given cacheDirectory (and max cacheSizeInByte) for some time.
+ * The swagger UI files are pre-loaded in the binary as resources.
  *
  * @param swaggerDefinition The definition of the swagger-file to serve.
- * @param okHttpClient the OkHttpClient to use to fetch the swagger-ui to serve. This [OkHttpClient] is altered as a new builder to apply caching logic.
- * @param cacheDirectory The directory to cache the swagger-ui in.
- * @param cacheSizeInByte The maximum size of the cache to use for the swagger-ui within the cacheDirectory.
+ * @param hideSwaggerValidator Whether the validator on the bottom should be hidden
  * @param hideSwaggerUrlField Whether the url field in the toolbar should be hidden.
  */
 class SwaggerHandler(
     swaggerDefinition: SwaggerDefinition,
     private val swaggerYamlUrl: String = "./swagger.yml",
-    okHttpClient: OkHttpClient,
-    cacheDirectory: File = File("./cache"),
-    cacheSizeInByte: Long = 1 * 1024 * 1024L /* default: 1 MB*/,
     private val hideSwaggerValidator: Boolean = false,
     private val hideSwaggerUrlField: Boolean = true
 ) {
 
-    init {
-        cacheDirectory.mkdirs()
-    }
 
     /**
      * The (lazily cached) [ByteArray] of the YAML file contents to serve.
@@ -45,21 +30,6 @@ class SwaggerHandler(
     private val swaggerYamlByteArray: ByteArray by lazy {
         YamlFileGenerator.generate(swaggerDefinition).toByteArray()
     }
-
-    /**
-     * The [OkHttpClient] to use for fetching the swagger-ui.
-     * This [OkHttpClient] contains a cache and applies caching-headers to the response to enable caching.
-     */
-    private val cachedOkHttpClient: OkHttpClient = okHttpClient.newBuilder()
-        .addNetworkInterceptor { chain ->
-            val response = chain.proceed(chain.request())
-            response
-                .newBuilder()
-                .header("Cache-Control", "max-age=${TimeUnit.DAYS.toSeconds(6 * 30)}")
-                .build()
-        }
-        .cache(Cache(cacheDirectory, cacheSizeInByte))
-        .build()
 
 
     /**
@@ -102,9 +72,12 @@ class SwaggerHandler(
     }
 
     private fun getUI(uri: String): ByteArray? {
-        return cachedOkHttpClient
-            .newCall(Request.Builder().get().url(SWAGGER_UI_GITHUB_ROOT + uri).build())
-            .execute().body?.bytes()
+        return try {
+            val classloader = SwaggerHandler::class.java.classLoader
+            classloader.getResourceAsStream("swagger-ui/$uri")?.readBytes()
+        } catch (throwable: Throwable) {
+            null
+        }
     }
 
     private fun String.getMimeType(): String {
@@ -120,11 +93,6 @@ class SwaggerHandler(
 
 
     private companion object {
-        /**
-         * The root URL for the swagger UI to fetch.
-         */
-        private const val SWAGGER_UI_GITHUB_ROOT =
-            "https://raw.githubusercontent.com/swagger-api/swagger-ui/master/dist/"
 
         /**
          * The url in the swagger UI to replace with the actual URL of the swagger definition file.
