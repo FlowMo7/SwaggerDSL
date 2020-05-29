@@ -1,0 +1,96 @@
+plugins {
+    id "org.jetbrains.dokka" version "0.10.1"
+    id "com.jfrog.bintray" version "1.8.5"
+}
+
+// publish stuff:
+// publishing works with ./gradlew clean build test dokka sourcesJar bintrayUpload (in a dry-run, for the final publish set dryRun to false or set the dryRun parameter below to false)
+
+Properties properties = new Properties()
+try {
+    properties.load(project.rootProject.file('bintray.public.properties').newDataInputStream())
+} catch (IOException e) {
+    println("bintray.public.properties not found. This can be ignored, unless you want to publish. " + e.localizedMessage)
+}
+
+
+Properties secretProperties = new Properties()
+try {
+    secretProperties.load(project.rootProject.file('local.properties').newDataInputStream())
+} catch (IOException e) {
+    println("local.properties not found. This can be ignored, unless you want to publish. " + e.localizedMessage)
+}
+
+
+group = properties.getProperty("library.groupId")
+version = properties.getProperty("library.version")
+
+install {
+    repositories.mavenInstaller {
+        pom.project {
+            packaging 'aar'
+            groupId properties.getProperty("library.groupId")
+            artifactId properties.getProperty("library.artifact")
+
+            description properties.getProperty("library.description")
+            url properties.getProperty("library.siteURL")
+
+            licenses {
+                license {
+                    name properties.getProperty("license.name")
+                    url properties.getProperty("license.url")
+                }
+            }
+            scm {
+                connection properties.getProperty("library.gitURL")
+                developerConnection properties.getProperty("library.gitURL")
+                url properties.getProperty("library.siteURL")
+            }
+        }
+    }
+}
+
+
+task sourcesJar(type: Jar) {
+    classifier = 'sources'
+    from kotlin.sourceSets.main.kotlin.srcDirs
+}
+
+dokka {
+    outputFormat = 'html'
+    outputDirectory = "$buildDir/javadoc"
+}
+
+task javadocJar(type: Jar, dependsOn: 'dokka') {
+    classifier = 'javadoc'
+    from fileTree(new File(project.buildDir, 'javadoc'))
+}
+
+
+artifacts {
+    archives javadocJar
+    archives sourcesJar
+}
+
+
+bintray {
+    user = secretProperties.getProperty("bintray.user")
+    key = secretProperties.getProperty("bintray.apikey")
+
+    configurations = ['archives']
+    pkg {
+        repo = properties.getProperty("bintray.repo")
+        name = properties.getProperty("bintray.name")
+        desc = properties.getProperty("library.description")
+        websiteUrl = properties.getProperty("library.siteURL")
+        vcsUrl = properties.getProperty("library.gitURL")
+        licenses = [properties.getProperty("license.allLicenses")]
+        dryRun = true
+        publish = true
+        override = false
+        publicDownloadNumbers = true
+        version {
+            desc = properties.getProperty("library.description")
+        }
+    }
+}

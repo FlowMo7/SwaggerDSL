@@ -1,0 +1,7 @@
+public final class dev/moetz/swagger/SwaggerHandler {
+	public static final field Companion Ldev/moetz/swagger/SwaggerHandler$Companion;
+	public fun <init> (Ldev/moetz/swagger/definition/SwaggerDefinition;Ljava/lang/String;Lokhttp3/OkHttpClient;Ljava/io/File;JZZ)V
+	public synthetic fun <init> (Ldev/moetz/swagger/definition/SwaggerDefinition;Ljava/lang/String;Lokhttp3/OkHttpClient;Ljava/io/File;JZZILkotlin/jvm/internal/DefaultConstructorMarker;)V
+	public final fun get (Ljava/lang/String;)Lkotlin/Pair;
+}
+
