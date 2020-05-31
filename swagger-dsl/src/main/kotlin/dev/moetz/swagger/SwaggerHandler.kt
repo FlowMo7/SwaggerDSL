@@ -3,7 +3,6 @@ package dev.moetz.swagger
 import dev.moetz.swagger.definition.SwaggerDefinition
 import dev.moetz.swagger.generator.YamlFileGenerator
 import java.nio.charset.Charset
-import javax.activation.MimetypesFileTypeMap
 
 
 /**
@@ -87,7 +86,7 @@ class SwaggerHandler(
             "png" -> "image/png"
             "js" -> "application/x-javascript"
             "yml" -> "application/x-yaml"
-            else -> MimetypesFileTypeMap().getContentType(this)
+            else -> "application/octet-stream"
         }
     }
 
