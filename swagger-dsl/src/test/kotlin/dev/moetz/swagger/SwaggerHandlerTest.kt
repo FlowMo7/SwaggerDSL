@@ -1,13 +1,12 @@
-package dev.moetz.swagger.generator
+package dev.moetz.swagger
 
-import dev.moetz.swagger.SwaggerHandler
 import dev.moetz.swagger.builder.SwaggerBuilder
 import org.amshove.kluent.shouldBeEqualTo
 import org.amshove.kluent.shouldNotBeEmpty
 import org.junit.Before
 import org.junit.Test
 
-class Sample {
+class SwaggerHandlerTest {
 
     private lateinit var handler: SwaggerHandler
 
