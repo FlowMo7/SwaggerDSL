@@ -25,7 +25,6 @@ allprojects {
 }
 
 ext {
-    okHttpVersion = "4.6.0"
     kotlinVersion = "1.3.72"
     mockkVersion = "1.10.0"
     kluentVersion = "1.61"

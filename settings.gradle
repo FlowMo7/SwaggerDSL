@@ -1,2 +1,2 @@
 rootProject.name = 'swagger'
-include ':swagger-ui', ':swagger-core'
+include ':swagger-dsl', ':sample'
