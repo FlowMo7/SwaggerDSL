@@ -36,9 +36,11 @@ sealed class Parameter {
 
     @SwaggerDsl
     fun type(type: String) {
-        val allowedTypes = listOf("array", "boolean", "integer", "number", "object", "string")
-        if (allowedTypes.contains(type).not()) {
-            throw IllegalArgumentException("Type ${type} not allowed. Must be one of the allowed values: ${allowedTypes.joinToString()}")
+        if (this !is FormDataParameter) {
+            val allowedTypes = listOf("array", "boolean", "integer", "number", "object", "string")
+            if (allowedTypes.contains(type).not()) {
+                throw IllegalArgumentException("Type ${type} not allowed. Must be one of the allowed values: ${allowedTypes.joinToString()}")
+            }
         }
         this.type = type
     }
@@ -82,6 +84,10 @@ class QueryParameter @PublishedApi internal constructor(override val name: Strin
 
 class BodyParameter @PublishedApi internal constructor(override val name: String) : Parameter() {
     override val parameterIn: String get() = "body"
+}
+
+class FormDataParameter @PublishedApi internal constructor(override val name: String) : Parameter() {
+    override val parameterIn: String get() = "formData"
 }
 
 class HeaderParameter @PublishedApi internal constructor(override val name: String) : Parameter() {

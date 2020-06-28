@@ -413,6 +413,17 @@ class SwaggerBuilder
         }
 
         /**
+         * Add a form-data body to this definition.
+         *
+         * @param name The name of the formData parameter.
+         * @param receiver The lambda with the [FormDataParameter] DSL to define the formData parameter specification
+         */
+        @SwaggerDsl
+        inline fun formDataParameter(name: String, receiver: FormDataParameter.() -> Unit) {
+            this.parameters.add(FormDataParameter(name).also(receiver))
+        }
+
+        /**
          * Add a parameter placed in the header to this definition.
          *
          * @param name The name of the parameter, as the header name should be.
