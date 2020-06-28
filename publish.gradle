@@ -3,7 +3,7 @@ apply plugin: 'com.jfrog.bintray'
 apply plugin: 'com.github.dcendents.android-maven'
 
 // publish stuff:
-// publishing works with ./gradlew clean build test dokka sourcesJar bintrayUpload (in a dry-run, for the final publish set dryRun to false or set the dryRun parameter below to false)
+// publishing works with ./gradlew clean build test dokka sourcesJar swagger-dsl:bintrayUpload (in a dry-run, for the final publish set dryRun to false or set the dryRun parameter below to false)
 
 Properties properties = new Properties()
 try {
