@@ -45,6 +45,7 @@ public final class dev/moetz/swagger/builder/SwaggerBuilder$Path {
 	public final fun consumes ([Ljava/lang/String;)V
 	public final fun deprecated ()V
 	public final fun description (Ljava/lang/String;)V
+	public final fun formDataParameter (Ljava/lang/String;Lkotlin/jvm/functions/Function1;)V
 	public final fun getDefinition ()Ldev/moetz/swagger/definition/SwaggerDefinition$Path;
 	public final fun headerParameter (Ljava/lang/String;Lkotlin/jvm/functions/Function1;)V
 	public final fun operationId (Ljava/lang/String;)V
@@ -71,6 +72,10 @@ public final class dev/moetz/swagger/builder/model/ArraySchema : dev/moetz/swagg
 }
 
 public final class dev/moetz/swagger/builder/model/BodyParameter : dev/moetz/swagger/builder/model/Parameter {
+	public fun <init> (Ljava/lang/String;)V
+}
+
+public final class dev/moetz/swagger/builder/model/FormDataParameter : dev/moetz/swagger/builder/model/Parameter {
 	public fun <init> (Ljava/lang/String;)V
 }
 
