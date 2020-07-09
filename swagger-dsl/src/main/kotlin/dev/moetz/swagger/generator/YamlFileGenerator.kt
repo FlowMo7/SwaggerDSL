@@ -202,6 +202,14 @@ object YamlFileGenerator {
             )
         }
 
+        format?.also {
+            list.add("${PADDING}collectionFormat: $format")
+            list.addAll(
+                arraySchema!!.toYamlLines()
+                    .map { "${PADDING}$it" }
+            )
+        }
+
         return list.toList()
     }
 

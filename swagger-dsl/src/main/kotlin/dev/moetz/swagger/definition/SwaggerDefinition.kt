@@ -1,5 +1,7 @@
 package dev.moetz.swagger.definition
 
+import dev.moetz.swagger.builder.model.ArraySchema
+
 
 data class SwaggerDefinition(
     val swaggerFileVersion: String,
@@ -43,7 +45,9 @@ data class SwaggerDefinition(
             val required: Boolean?,
             val type: String?,
             val enum: List<String>?,
-            val schema: SchemaDefinition?
+            val schema: SchemaDefinition?,
+            val format: String?,
+            val arraySchema: SchemaDefinition?
         )
 
         data class ResponseDefinition(
