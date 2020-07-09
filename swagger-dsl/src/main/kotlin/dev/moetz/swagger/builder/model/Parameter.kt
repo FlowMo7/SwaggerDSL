@@ -13,6 +13,8 @@ sealed class Parameter {
     private var schema: Schema? = null
     protected open var type: String? = null
     private var enum: List<String>? = null
+    private var format: String? = null
+    private var arraySchema: Schema? = null
 
     @SwaggerDsl
     fun description(description: String) {
@@ -51,6 +53,27 @@ sealed class Parameter {
     }
 
 
+    /**
+     * Set the format and item type of array parameter.
+     * **See Also:** [Documentation](https://swagger.io/docs/specification/2-0/describing-parameters/#array)
+     *
+     * @param format The format of the parameter.
+     * @param arraySchema The [Schema] of the items in this array
+     */
+    @SwaggerDsl
+    fun array(format: String, arraySchema: Schema) {
+        this.format = format
+        this.arraySchema = arraySchema
+        val allowedTypes = listOf("csv", "ssv", "tsv", "pipes", "multi")
+        if (allowedTypes.contains(format).not()) {
+            throw IllegalArgumentException("Format ${format} not allowed. Must be one of the allowed values: ${allowedTypes.joinToString()}")
+        }
+        if(format == "multi" && (this !is QueryParameter || this !is FormDataParameter)) {
+            throw IllegalArgumentException("Type ${format} only allowed on query or form data parameters")
+        }
+    }
+
+
     val definition: SwaggerDefinition.Path.ParameterDefinition
         get() = SwaggerDefinition.Path.ParameterDefinition(
             name = name,
@@ -59,7 +82,9 @@ sealed class Parameter {
             required = required,
             type = type,
             enum = enum,
-            schema = schema?.definition
+            schema = schema?.definition,
+            format = format,
+            arraySchema = arraySchema?.definition
         )
 
 }
