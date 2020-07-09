@@ -47,7 +47,7 @@ data class SwaggerDefinition(
             val enum: List<String>?,
             val schema: SchemaDefinition?,
             val format: String?,
-            val arraySchema: SchemaDefinition?
+            val arrayItemsSchema: SchemaDefinition?
         )
 
         data class ResponseDefinition(

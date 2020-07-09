@@ -205,7 +205,7 @@ object YamlFileGenerator {
         format?.also {
             list.add("${PADDING}collectionFormat: $format")
             list.addAll(
-                arraySchema!!.toYamlLines()
+                requireNotNull(arrayItemsSchema) { "arrayItemsSchema is n" }.toYamlLines()
                     .map { "${PADDING}$it" }
             )
         }

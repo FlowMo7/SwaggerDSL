@@ -14,7 +14,7 @@ sealed class Parameter {
     protected open var type: String? = null
     private var enum: List<String>? = null
     private var format: String? = null
-    private var arraySchema: Schema? = null
+    private var arrayItemsSchema: Schema? = null
 
     @SwaggerDsl
     fun description(description: String) {
@@ -58,18 +58,18 @@ sealed class Parameter {
      * **See Also:** [Documentation](https://swagger.io/docs/specification/2-0/describing-parameters/#array)
      *
      * @param format The format of the parameter.
-     * @param arraySchema The [Schema] of the items in this array
+     * @param itemsSchema The [Schema] of the items in this array
      */
     @SwaggerDsl
-    fun array(format: String, arraySchema: Schema) {
+    fun array(format: String, itemsSchema: Schema) {
         this.format = format
-        this.arraySchema = arraySchema
+        this.arrayItemsSchema = itemsSchema
         val allowedTypes = listOf("csv", "ssv", "tsv", "pipes", "multi")
         if (allowedTypes.contains(format).not()) {
-            throw IllegalArgumentException("Format ${format} not allowed. Must be one of the allowed values: ${allowedTypes.joinToString()}")
+            throw IllegalArgumentException("Format $format not allowed. Must be one of the allowed values: ${allowedTypes.joinToString()}")
         }
         if(format == "multi" && (this !is QueryParameter || this !is FormDataParameter)) {
-            throw IllegalArgumentException("Type ${format} only allowed on query or form data parameters")
+            throw IllegalArgumentException("Type $format only allowed on query or form data parameters")
         }
     }
 
@@ -84,7 +84,7 @@ sealed class Parameter {
             enum = enum,
             schema = schema?.definition,
             format = format,
-            arraySchema = arraySchema?.definition
+            arrayItemsSchema = arrayItemsSchema?.definition
         )
 
 }
