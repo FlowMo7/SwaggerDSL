@@ -455,6 +455,75 @@ definitions:
     }
 
     @Test
+    fun testArrayType() {
+        val definition = SwaggerBuilder.generate {
+            info {
+                title("Test API")
+                version("1.2.3")
+                description("Some API description")
+                host("swagger.example.org")
+                basePath("/swaggertest/")
+                schemes("https")
+            }
+
+            tag("someTag", "Some information about the tag")
+
+            path("/somePath", "get") {
+                operationId("somePath")
+                tags("someTag")
+
+                queryParameter("test") {
+                    description("array query parameter")
+                    array("csv", createArraySchema {
+                        items(createTypeSchema("string") {
+                            description("type of array")
+                        })
+                    })
+                }
+
+                response(200) {
+                    description("success")
+                }
+            }
+        }
+
+        val generatedYaml = YamlFileGenerator.generate(definition)
+
+        generatedYaml.trimMargin() shouldBeEqualTo """
+swagger: '2.0'
+info:
+  description: "Some API description"
+  version: '1.2.3'
+  title: "Test API"
+host: "swagger.example.org"
+basePath: "/swaggertest/"
+schemes:
+  - https
+tags:
+  - name: someTag
+    description: "Some information about the tag"
+paths:
+  "/somePath":
+    get:
+      tags:
+        - someTag
+      operationId: "somePath"
+      parameters:
+        - name: test
+          in: query
+          description: "array query parameter"
+          collectionFormat: csv
+          type: array
+          items:
+            type: string
+            description: "type of array"
+      responses:
+        200:
+          description: "success"
+ """.trimMargin()
+    }
+
+    @Test
     fun simpleYamlDefinitionTest() {
         val definition = SwaggerBuilder.generate {
             info {
