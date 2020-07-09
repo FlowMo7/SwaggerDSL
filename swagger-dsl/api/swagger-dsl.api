@@ -92,6 +92,7 @@ public final class dev/moetz/swagger/builder/model/ObjectSchema : dev/moetz/swag
 }
 
 public abstract class dev/moetz/swagger/builder/model/Parameter {
+	public final fun array (Ljava/lang/String;Ldev/moetz/swagger/builder/model/Schema;)V
 	public final fun description (Ljava/lang/String;)V
 	public final fun enum ([Ljava/lang/String;)V
 	public final fun getDefinition ()Ldev/moetz/swagger/definition/SwaggerDefinition$Path$ParameterDefinition;
@@ -232,7 +233,7 @@ public final class dev/moetz/swagger/definition/SwaggerDefinition$Path {
 }
 
 public final class dev/moetz/swagger/definition/SwaggerDefinition$Path$ParameterDefinition {
-	public fun <init> (Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/Boolean;Ljava/lang/String;Ljava/util/List;Ldev/moetz/swagger/definition/SwaggerDefinition$Path$SchemaDefinition;)V
+	public fun <init> (Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/Boolean;Ljava/lang/String;Ljava/util/List;Ldev/moetz/swagger/definition/SwaggerDefinition$Path$SchemaDefinition;Ljava/lang/String;Ldev/moetz/swagger/definition/SwaggerDefinition$Path$SchemaDefinition;)V
 	public final fun component1 ()Ljava/lang/String;
 	public final fun component2 ()Ljava/lang/String;
 	public final fun component3 ()Ljava/lang/String;
@@ -240,11 +241,15 @@ public final class dev/moetz/swagger/definition/SwaggerDefinition$Path$Parameter
 	public final fun component5 ()Ljava/lang/String;
 	public final fun component6 ()Ljava/util/List;
 	public final fun component7 ()Ldev/moetz/swagger/definition/SwaggerDefinition$Path$SchemaDefinition;
-	public final fun copy (Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/Boolean;Ljava/lang/String;Ljava/util/List;Ldev/moetz/swagger/definition/SwaggerDefinition$Path$SchemaDefinition;)Ldev/moetz/swagger/definition/SwaggerDefinition$Path$ParameterDefinition;
-	public static synthetic fun copy$default (Ldev/moetz/swagger/definition/SwaggerDefinition$Path$ParameterDefinition;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/Boolean;Ljava/lang/String;Ljava/util/List;Ldev/moetz/swagger/definition/SwaggerDefinition$Path$SchemaDefinition;ILjava/lang/Object;)Ldev/moetz/swagger/definition/SwaggerDefinition$Path$ParameterDefinition;
+	public final fun component8 ()Ljava/lang/String;
+	public final fun component9 ()Ldev/moetz/swagger/definition/SwaggerDefinition$Path$SchemaDefinition;
+	public final fun copy (Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/Boolean;Ljava/lang/String;Ljava/util/List;Ldev/moetz/swagger/definition/SwaggerDefinition$Path$SchemaDefinition;Ljava/lang/String;Ldev/moetz/swagger/definition/SwaggerDefinition$Path$SchemaDefinition;)Ldev/moetz/swagger/definition/SwaggerDefinition$Path$ParameterDefinition;
+	public static synthetic fun copy$default (Ldev/moetz/swagger/definition/SwaggerDefinition$Path$ParameterDefinition;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/Boolean;Ljava/lang/String;Ljava/util/List;Ldev/moetz/swagger/definition/SwaggerDefinition$Path$SchemaDefinition;Ljava/lang/String;Ldev/moetz/swagger/definition/SwaggerDefinition$Path$SchemaDefinition;ILjava/lang/Object;)Ldev/moetz/swagger/definition/SwaggerDefinition$Path$ParameterDefinition;
 	public fun equals (Ljava/lang/Object;)Z
+	public final fun getArrayItemsSchema ()Ldev/moetz/swagger/definition/SwaggerDefinition$Path$SchemaDefinition;
 	public final fun getDescription ()Ljava/lang/String;
 	public final fun getEnum ()Ljava/util/List;
+	public final fun getFormat ()Ljava/lang/String;
 	public final fun getIn ()Ljava/lang/String;
 	public final fun getName ()Ljava/lang/String;
 	public final fun getRequired ()Ljava/lang/Boolean;
