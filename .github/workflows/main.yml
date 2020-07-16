@@ -2,9 +2,9 @@ name: Android tests
 
 on:
   push:
-    branches: [ '*' ]
+    branches: [ 'master' ]
   pull_request:
-    branches: [ master ]
+    branches: [ '*' ]
 
 jobs:
   test:
@@ -17,5 +17,5 @@ jobs:
       uses: actions/setup-java@v1
       with:
         java-version: 1.8
-    - name: Unit tests
-      run: bash ./gradlew test --stacktrace
+    - name: Run unit tests
+      run: bash ./gradlew test
