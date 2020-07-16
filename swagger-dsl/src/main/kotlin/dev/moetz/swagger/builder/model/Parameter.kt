@@ -41,7 +41,7 @@ sealed class Parameter {
         if (this !is FormDataParameter) {
             val allowedTypes = listOf("array", "boolean", "integer", "number", "object", "string")
             if (allowedTypes.contains(type).not()) {
-                throw IllegalArgumentException("Type ${type} not allowed. Must be one of the allowed values: ${allowedTypes.joinToString()}")
+                throw IllegalArgumentException("Type $type not allowed. Must be one of the allowed values: ${allowedTypes.joinToString()}")
             }
         }
         this.type = type
@@ -68,25 +68,29 @@ sealed class Parameter {
         if (allowedTypes.contains(format).not()) {
             throw IllegalArgumentException("Format $format not allowed. Must be one of the allowed values: ${allowedTypes.joinToString()}")
         }
-        if(format == "multi" && (this !is QueryParameter || this !is FormDataParameter)) {
+        if (format == "multi" && (this !is QueryParameter || this !is FormDataParameter)) {
             throw IllegalArgumentException("Type $format only allowed on query or form data parameters")
         }
     }
 
 
     val definition: SwaggerDefinition.Path.ParameterDefinition
-        get() = SwaggerDefinition.Path.ParameterDefinition(
-            name = name,
-            `in` = parameterIn,
-            description = description,
-            required = required,
-            type = type,
-            enum = enum,
-            schema = schema?.definition,
-            format = format,
-            arrayItemsSchema = arrayItemsSchema?.definition
-        )
-
+        get() {
+            if (this !is BodyParameter && type == null) {
+                throw IllegalArgumentException("Parameters must have a type declared (all but the body parameter). ${this.name} is missing a type.")
+            }
+            return SwaggerDefinition.Path.ParameterDefinition(
+                name = name,
+                `in` = parameterIn,
+                description = description,
+                required = required,
+                type = type,
+                enum = enum,
+                schema = schema?.definition,
+                format = format,
+                arrayItemsSchema = arrayItemsSchema?.definition
+            )
+        }
 }
 
 
@@ -94,6 +98,11 @@ class PathParameter @PublishedApi internal constructor(
     override val name: String,
     override var type: String?
 ) : Parameter() {
+
+    init {
+        //validation is done in the DSL setter, so we invoke it here
+        type?.let { type(it) }
+    }
 
     override val parameterIn: String
         get() = "path"
