@@ -62,6 +62,7 @@ sealed class Parameter {
      */
     @SwaggerDsl
     fun array(format: String, itemsSchema: Schema) {
+        this.type = null
         this.format = format
         this.arrayItemsSchema = itemsSchema
         val allowedTypes = listOf("csv", "ssv", "tsv", "pipes", "multi")
@@ -76,7 +77,7 @@ sealed class Parameter {
 
     val definition: SwaggerDefinition.Path.ParameterDefinition
         get() {
-            if (this !is BodyParameter && type == null) {
+            if (this !is BodyParameter && arrayItemsSchema == null && type == null) {
                 throw IllegalArgumentException("Parameters must have a type declared (all but the body parameter). ${this.name} is missing a type.")
             }
             return SwaggerDefinition.Path.ParameterDefinition(
