@@ -12,7 +12,7 @@ repositories {
 dependencies {
     implementation "org.jetbrains.kotlin:kotlin-stdlib-jdk8"
 
-    testCompile("junit:junit:4.13")
+    testCompile("junit:junit:4.13.2")
     testCompile("org.jetbrains.kotlin:kotlin-stdlib-jdk8:$kotlinVersion")
     testCompile("org.jetbrains.kotlin:kotlin-test-junit:$kotlinVersion")
     testCompile("io.mockk:mockk:$mockkVersion")

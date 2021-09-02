@@ -7,13 +7,12 @@ This library provides a Kotlin DSL to create Swagger definitions and provides a 
 
 
 ## Setup
-
 ```gradle
 allprojects {
     repositories {
         ...
         maven {
-            url  "https://dl.bintray.com/flowmo7/maven" 
+            url  "https://nexus.moetz.dev/repository/maven-public" 
         }
     }
 }
@@ -23,6 +22,11 @@ dependencies {
 }
 ```
 
+### Hint
+
+Please note, that the given maven repository is kind of an intermediary solution, and the URL / location may change in 
+the future.
+If the repository is unreachable, please check here again for the new one / updates.
 
 ## Kotlin DSL Usage
 

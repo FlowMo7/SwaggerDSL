@@ -1,9 +1,6 @@
 apply plugin: 'org.jetbrains.dokka'
-apply plugin: 'com.jfrog.bintray'
+apply plugin: 'maven-publish'
 apply plugin: 'com.github.dcendents.android-maven'
-
-// publish stuff:
-// publishing works with ./gradlew clean build test dokka sourcesJar swagger-dsl:bintrayUpload (in a dry-run, for the final publish set dryRun to false or set the dryRun parameter below to false)
 
 Properties properties = new Properties()
 try {
@@ -71,25 +68,52 @@ artifacts {
     archives sourcesJar
 }
 
+//publish using: ./gradlew clean swagger-dsl:build swagger-dsl:publishSwaggerPublicationToMavenRepository
+publishing {
+    publications {
+        swagger(MavenPublication) {
+            groupId properties.getProperty("library.groupId")
+            artifactId properties.getProperty("library.artifact")
+            version properties.getProperty("library.version")
+            artifact(sourcesJar)
+            artifact(javadocJar)
+            artifact("$buildDir/libs/swagger-dsl-${properties.getProperty("library.version")}.jar")
 
-bintray {
-    user = secretProperties.getProperty("bintray.user")
-    key = secretProperties.getProperty("bintray.apikey")
+            pom {
+                name = "SwaggerDSL"
+                description = "A Kotlin DSL to define a Swagger definition including generation of YAML and providing the swagger-ui."
+                url = "https://github.com/FlowMo7/SwaggerDSL"
 
-    configurations = ['archives']
-    pkg {
-        repo = properties.getProperty("bintray.repo")
-        name = properties.getProperty("bintray.name")
-        desc = properties.getProperty("library.description")
-        websiteUrl = properties.getProperty("library.siteURL")
-        vcsUrl = properties.getProperty("library.gitURL")
-        licenses = [properties.getProperty("license.allLicenses")]
-        dryRun = true
-        publish = true
-        override = false
-        publicDownloadNumbers = true
-        version {
-            desc = properties.getProperty("library.description")
+                licenses {
+                    license {
+                        name = "Apache-2.0"
+                        url = "https://github.com/FlowMo7/SwaggerDSL/blob/master/LICENSE"
+                    }
+                }
+            }
+
+            pom.withXml {
+                def dependenciesNode = asNode().appendNode('dependencies')
+
+                //Iterate over the compile dependencies (we don't want the test ones), adding a <dependency> node for each
+                configurations.implementation.allDependencies.each {
+                    if (it.group != null) {
+                        def dependencyNode = dependenciesNode.appendNode('dependency')
+                        dependencyNode.appendNode('groupId', it.group)
+                        dependencyNode.appendNode('artifactId', it.name)
+                        dependencyNode.appendNode('version', it.version)
+                    }
+                }
+            }
+        }
+    }
+    repositories {
+        maven {
+            url 'https://nexus.moetz.dev/repository/maven-public/'
+            credentials {
+                username secretProperties.getProperty("maven.user")
+                password secretProperties.getProperty("maven.password")
+            }
         }
     }
 }
