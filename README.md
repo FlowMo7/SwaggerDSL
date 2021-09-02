@@ -1,8 +1,5 @@
 # Kotlin Swagger DSL
 
-[ ![Download](https://api.bintray.com/packages/flowmo7/maven/swagger-dsl/images/download.svg) ](https://bintray.com/flowmo7/maven/swagger-dsl/_latestVersion)
-
-
 This library provides a Kotlin DSL to create Swagger definitions and provides a provider for the respective Swagger UI HTML / JS / CSS files.
 
 
